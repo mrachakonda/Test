@@ -1,0 +1,40 @@
+--Input file 
+storeid, productid, productprice 
+1,100,100000
+2,100,200000
+3,100,4444
+1,101,222222
+2,101,333333
+3,101,5555555
+Objective : Find the store which is peforming better based on the product price 
+
+val store = sc.textFile("/user/muralirachakonda/store.txt")
+val storemap = store.map(x => (x.split(",")(1).toInt , x)
+def getTop(rec: (Int, Iterable[String])): Iterable[String] = {
+  val x: List[String] = rec._2.toList.sortBy(k => -k.split(",")(2).toFloat).take(1)
+  return x
+}
+storemap.groupByKey().flatMap(x => getTop(x)).collect().foreach(println)
+
+--output
+18/02/16 17:30:58 INFO Executor: Finished task 0.0 in stage 10.0 (TID 20). 1180 bytes result sent to driver
+18/02/16 17:30:58 INFO Executor: Finished task 1.0 in stage 10.0 (TID 21). 1181 bytes result sent to driver
+18/02/16 17:30:58 INFO TaskSetManager: Finished task 0.0 in stage 10.0 (TID 20) in 7 ms on localhost (1/2)
+18/02/16 17:30:58 INFO TaskSetManager: Finished task 1.0 in stage 10.0 (TID 21) in 8 ms on localhost (2/2)
+18/02/16 17:30:58 INFO TaskSchedulerImpl: Removed TaskSet 10.0, whose tasks have all completed, from pool 
+18/02/16 17:30:58 INFO DAGScheduler: ResultStage 10 (collect at <console>:34) finished in 0.008 s
+18/02/16 17:30:58 INFO DAGScheduler: Job 6 finished: collect at <console>:34, took 0.131638 s
+2,100,200000
+3,101,5555555
+
+storemap.groupByKey().flatMap(x => getTop(x)).saveAsTextFile("/user/muralirachakonda/output")
+
+
+[muralirachakonda@gw03 ~]$ hadoop fs -ls /user/muralirachakonda/output/
+Found 3 items
+-rw-r--r--   3 muralirachakonda hdfs          0 2018-02-16 17:43 /user/muralirachakonda/output/_SUCCESS
+-rw-r--r--   3 muralirachakonda hdfs         13 2018-02-16 17:43 /user/muralirachakonda/output/part-00000
+-rw-r--r--   3 muralirachakonda hdfs         14 2018-02-16 17:43 /user/muralirachakonda/output/part-00001
+[muralirachakonda@gw03 ~]$ hadoop fs -cat /user/muralirachakonda/output/part*
+2,100,200000
+3,101,5555555
